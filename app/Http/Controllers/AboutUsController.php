@@ -31,10 +31,7 @@ class AboutUsController extends Controller
 
         // ✅ Validation for all fields
         $validator = Validator::make($request->all(), [
-            'company_name' => 'required|string|max:255',
-            'established_year' => 'nullable|integer',
-            'parent_company' => 'nullable|string|max:255',
-            'company_slogan' => 'nullable|string|max:255',
+
             'brief_intro' => 'nullable|string',
             'mission_statement' => 'nullable|string',
             'vision_statement' => 'nullable|string',
@@ -49,14 +46,13 @@ class AboutUsController extends Controller
             'prime_locations' => 'nullable|string',
             'affordability_financing' => 'nullable|string',
             'sustainability' => 'nullable|string',
-            'awards' => 'nullable|string',
+            'safety' => 'nullable|string',
             'contact_address' => 'nullable|string',
             'phone_numbers' => 'nullable|json',
             'email_support' => 'nullable|string|email',
             'live_chat' => 'nullable|string',
             'social_media_links' => 'nullable|json',
             'status' => 'nullable|string|in:Published,Unpublished',
-            // 'company_logo' => 'nullable|image|mimes:jpg,png,jpeg,svg|max:2048',
             'office_images.*' => 'nullable|image|mimes:jpg,png,jpeg|max:2048'
         ]);
 
@@ -69,11 +65,6 @@ class AboutUsController extends Controller
         }
 
         try {
-            // ✅ Handle Company Logo Upload
-            // if ($request->hasFile('company_logo')) {
-            //     $path = $request->file('company_logo')->store('uploads/about', 'public');
-            //     $about->company_logo = $path;
-            // }
 
             // ✅ Handle Multiple Office Images
             if ($request->hasFile('office_images')) {
@@ -99,7 +90,7 @@ class AboutUsController extends Controller
                 'evolution', 'quality_innovation', 'prime_locations', 'affordability_financing',
                 // 'company_logo',
                  'office_images', 'milestone', 'real_estate_services', 'property_types',
-                'sustainability', 'awards', 'contact_address','phone_numbers', 'email_support',
+                'sustainability', 'safety', 'contact_address','phone_numbers', 'email_support',
                 'investment_opportunities','customer_segments', 'live_chat', 'social_media_links', 'status',
                 'version_history'
             ]));

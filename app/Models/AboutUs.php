@@ -14,7 +14,7 @@ class AboutUs extends Model
         'our_story', 'milestones', 'evolution',
         'real_estate_services', 'property_types', 'investment_opportunities',
         'customer_segments', 'quality_innovation', 'prime_locations',
-        'affordability_financing', 'sustainability', 'awards',
+        'affordability_financing', 'sustainability', 'safety',
         'contact_address', 'phone_numbers', 'email_support', 'live_chat',
         'social_media_links', 'status', 
         // 'company_logo',

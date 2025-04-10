@@ -67,7 +67,14 @@ class JobController extends Controller
         }
     }
     
-    
+    // 🌐 Public-safe Job Detail
+public function showPublic($id)
+{
+    $job = Job::where('status', 'Published')->findOrFail($id);
+
+    return response()->json($job);
+}
+
     // ✅ Fetch a Single Job
     public function show($id) {
         return response()->json(Job::findOrFail($id));

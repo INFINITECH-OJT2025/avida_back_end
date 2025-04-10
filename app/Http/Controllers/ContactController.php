@@ -26,7 +26,7 @@ class ContactController extends Controller {
         );
     }
 
-    // ✅ Admin: Full access
+    // Admin: Full access
     public function adminIndex()
     {
         return response()->json(Contact::all());

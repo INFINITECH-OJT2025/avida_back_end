@@ -34,8 +34,6 @@ Route::post('/submit-property', [PropertyController::class, 'submitProperty']);
 Route::get('/properties/{id}', [PropertyController::class, 'getProperty']);
 Route::get('/properties', [PropertyController::class, 'getPublishedProperties']);
 
-
-
 Route::post('/inquiries', [InquiryController::class, 'store']);
 Route::get('/inquiries/{id}/with-replies', [InquiryController::class, 'showWithReplies']);
 
@@ -51,9 +49,9 @@ Route::get('/services', [ServiceController::class, 'index']); // 🌐 Public: Ge
 Route::get('/services/{id}', [ServiceController::class, 'show']); // 🌐 Public: Show approved service only
 
 Route::get('/contacts', [ContactController::class, 'publicIndex']);
+Route::get('/jobs/public/{id}', [JobController::class, 'showPublic']);
 
-
-    // 🔐 Authenticated Routes (Any verified user with token)
+// 🔐 Authenticated Routes (Any verified user with token)
 Route::middleware(['jwt.auth', 'isAdmin'])->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/user/update-profile', [AuthController::class, 'updateProfile']);
@@ -62,8 +60,6 @@ Route::middleware(['jwt.auth', 'isAdmin'])->group(function () {
     Route::post('/news', [NewsController::class, 'store']);
     Route::put('/news/{id}', [NewsController::class, 'update']);
     Route::delete('/news/{id}', [NewsController::class, 'destroy']);
-
-
 });
 
 // 🔐 Admin-Only Routes (Protected with adminOnly middleware)
@@ -78,16 +74,16 @@ Route::middleware(['jwt.auth', 'isAdmin'])->prefix('admin')->group(function () {
     Route::post('/services', [ServiceController::class, 'store']); // 🔐 Admin: Add new service
     Route::put('/services/{id}', [ServiceController::class, 'update']); // 🔐 Admin: Update service
     Route::delete('/services/{id}', [ServiceController::class, 'destroy']); // 🔐 Admin: Delete service
-    
-Route::get('/contacts', [ContactController::class, 'adminIndex']); // inside Route::prefix('admin')
-Route::post('/contacts', [ContactController::class, 'store']);
-Route::put('/contacts/{id}', [ContactController::class, 'update']);
-Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);
+
+    Route::get('/contacts', [ContactController::class, 'adminIndex']); // inside Route::prefix('admin')
+    Route::post('/contacts', [ContactController::class, 'store']);
+    Route::put('/contacts/{id}', [ContactController::class, 'update']);
+    Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);
 
     Route::patch('/appointments/{id}/status', [AppointmentController::class, 'updateStatus']);
     Route::post('/appointments/{id}/message', [AppointmentController::class, 'sendMessage']);
-    
-    
+
+
     // 📬 Inquiries
     Route::get('/inquiries', [InquiryController::class, 'index']);
     Route::get('/inquiries/{id}', [InquiryController::class, 'show']);

@@ -1,16 +1,28 @@
 <?php
+
 namespace App\Services;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class MailService
 {
+    /**
+     * Generic method to send email using PHPMailer
+     */
     public static function sendEmail($to, $subject, $body)
     {
-        Log::info("Attempting to send email to: " . $to); // ✅ Log email attempt
+        Log::info("📧 [MailService] Preparing to send email", [
+            'to' => $to,
+            'type' => gettype($to)
+        ]);
+
+        // Validate email recipient
+        if (empty($to) || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            Log::error("❌ Invalid email address provided", ['email' => $to]);
+            return false;
+        }
 
         $mail = new PHPMailer(true);
 
@@ -24,29 +36,35 @@ class MailService
             $mail->SMTPSecure = env('MAIL_ENCRYPTION', PHPMailer::ENCRYPTION_STARTTLS);
             $mail->Port       = env('MAIL_PORT', 587);
 
-            // Sender and recipient
+            // Sender and Recipient
             $mail->setFrom(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'));
             $mail->addAddress($to);
 
-            // Email content
+            // Email Content
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body    = $body;
 
-            // ✅ Send Email
+            // Send Email
             if (!$mail->send()) {
-                Log::error("Email sending failed: " . $mail->ErrorInfo);
+                Log::error("📤 Email failed to send", ['error' => $mail->ErrorInfo]);
                 return false;
             }
 
-            Log::info("Email successfully sent to: " . $to);
+            Log::info("✅ Email successfully sent to: $to");
             return true;
         } catch (Exception $e) {
-            Log::error("PHPMailer Exception: " . $e->getMessage());
+            Log::error("💥 PHPMailer Exception", [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString()
+            ]);
             return false;
         }
     }
 
+    /**
+     * Send a verification email with a verification link
+     */
     public static function sendVerificationEmail($to, $name, $verifyLink)
     {
         $subject = "Verify Your Email Address";

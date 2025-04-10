@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Str;
 use App\Services\MailService;
@@ -48,9 +49,18 @@ class AuthController extends Controller
             'email_verification_token' => $verificationToken
         ]);
 
-        // Send verification email (adjust MailService accordingly)
+        // Send verification email with logs and guard
         $verifyLink = env('APP_URL') . "/api/verify-email?token=" . $verificationToken;
-        MailService::sendVerificationEmail($user->email, $user->name, $verifyLink);
+
+        Log::info('📧 Sending verification email to: ' . json_encode($user->email));
+        Log::info('📧 Type of email: ' . gettype($user->email));
+        Log::debug('🧪 Registered user payload:', $user->toArray());
+
+        if (empty($user->email) || !filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+            Log::error("❌ Invalid email provided during registration", ['email' => $user->email]);
+        } else {
+            MailService::sendVerificationEmail($user->email, $user->name, $verifyLink);
+        }
 
         return response()->json([
             'message' => 'Registration successful. Please check your email to verify your account.',
@@ -64,44 +74,39 @@ class AuthController extends Controller
     public function verifyEmail(Request $request)
     {
         $user = User::where('email_verification_token', $request->token)->first();
-    
+
         if (!$user) {
             return redirect(env('CORS_ALLOWED_ORIGINS') . '/auth/login?verified=fail');
         }
-    
-        // If already verified
+
         if ($user->email_verified_at) {
             return redirect(env('CORS_ALLOWED_ORIGINS') . '/auth/login?verified=already');
         }
-    
-        // Mark email as verified
+
         $user->email_verified_at = now();
         $user->email_verification_token = null;
         $user->save();
-    
+
         return redirect(env('CORS_ALLOWED_ORIGINS') . '/auth/login?verified=success');
     }
+
     /**
      * Login and generate token
      */
     public function login(Request $request)
     {
-        // Validate email and password are provided
         $credentials = $request->only('email', 'password');
 
-        // Try to find the user by email
         $user = User::where('email', $credentials['email'])->first();
 
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
-        // Check if the user has verified their email
         if (!$user->email_verified_at) {
             return response()->json(['error' => 'Please verify your email before logging in.'], 403);
         }
 
-        // Attempt to create a token using the credentials
         if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Failed to create token'], 401);
         }

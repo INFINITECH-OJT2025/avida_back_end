@@ -10,7 +10,7 @@ use App\Models\PropertyMedia;
 
 class PropertyController extends Controller
 {
-    // ✅ Submit Property (Supports Panolens & Lightbox2 separately)
+    // Submit Property (Supports Panolens & Lightbox2 separately)
     public function submitProperty(Request $request)
     {
         try {
@@ -31,7 +31,7 @@ class PropertyController extends Controller
                 'property_status' => 'required|in:For Rent,For Sale',
                 'features_amenities' => 'required|json',
 
-                // ✅ Separate inputs for Panolens and Lightbox2
+                // Separate inputs for Panolens and Lightbox2
                 'panolens_images' => 'nullable|array',
                 'panolens_images.*' => 'nullable|mimes:jpeg,png,jpg,webp|max:50120',
 
@@ -49,7 +49,7 @@ class PropertyController extends Controller
                 ], 422);
             }
 
-            // ✅ Create Property Entry
+            // Create Property Entry
             $property = Property::create([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
@@ -70,7 +70,7 @@ class PropertyController extends Controller
                 'status' => 'pending',
             ]);
 
-            // ✅ Store media separately
+            // Store media separately
             $this->storePanolensImages($request, $property->id);
             $this->storeLightboxMedia($request, $property->id);
 
@@ -87,7 +87,7 @@ class PropertyController extends Controller
     }
 
     /**
-     * ✅ Store Panolens (360° Images)
+     * Store Panolens (360° Images)
      */
     private function storePanolensImages($request, $propertyId)
     {
@@ -95,10 +95,9 @@ class PropertyController extends Controller
             foreach ($request->file('panolens_images') as $file) {
                 $path = $file->store("property_panorama_images/{$propertyId}", 'public');
     
-                // ✅ Store only the relative path (not the full URL)
                 PropertyMedia::create([
                     'property_id' => $propertyId,
-                    'url' => $path, // ✅ Only store the relative storage path
+                    'url' => $path, 
                     'type' => '360',
                 ]);
             }
@@ -106,7 +105,7 @@ class PropertyController extends Controller
     }
     
     /**
-     * ✅ Store Lightbox2 (Normal Images & Videos)
+     * Store Lightbox2 (Normal Images & Videos)
      */
     private function storeLightboxMedia($request, $propertyId)
     {
@@ -116,10 +115,9 @@ class PropertyController extends Controller
                 $type = in_array($extension, ['mp4', 'mov', 'avi', 'mkv']) ? 'video' : 'image';
                 $path = $file->store("property_lightbox_media/{$propertyId}", 'public');
     
-                // ✅ Store only the relative path (not the full URL)
                 PropertyMedia::create([
                     'property_id' => $propertyId,
-                    'url' => $path, // ✅ Only store the relative storage path
+                    'url' => $path, 
                     'type' => $type,
                 ]);
             }
@@ -127,7 +125,7 @@ class PropertyController extends Controller
     }
     
     /**
-     * ✅ Get Single Property with Media
+     * Get Single Property with Media
      */
     public function getProperty($id, Request $request)
     {
@@ -141,17 +139,18 @@ class PropertyController extends Controller
             return response()->json(['error' => 'Property not found or not approved'], 404);
         }
     
-        // ✅ Convert relative paths to full URLs
         foreach ($property->media as $media) {
             if (!str_starts_with($media->url, 'http')) {
-                $media->url = asset('storage/' . ltrim($media->url, '/'));
+                $media->url = str_starts_with($media->url, '/storage/')
+    ? asset($media->url)
+    : asset("storage/{$media->url}");
+
             }
         }
-    
-        return response()->json($property);
+            return response()->json($property);
     }
     
-    // ✅ 5. Get All Published Properties (Approved Only)
+    // 5. Get All Published Properties (Approved Only)
     public function getPublishedProperties()
     {
         try {
@@ -160,17 +159,20 @@ class PropertyController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
     
-            // ✅ Convert storage paths to full URLs
-            foreach ($properties as $property) {
-                foreach ($property->media as $media) {
-                    if (!str_starts_with($media->url, 'http')) {
-                        $media->url = asset('storage/' . ltrim($media->url, '/'));
+                foreach ($properties as $property) {
+                    foreach ($property->media as $media) {
+                        if (!str_starts_with($media->url, 'http')) {
+                            $media->url = str_starts_with($media->url, '/storage/')
+    ? asset($media->url)
+    : asset("storage/{$media->url}");
+                        }
                     }
+                    
                 }
-            }
-    
+                
             return response()->json($properties, 200);
         } catch (\Exception $e) {
+            \Log::error('getPublishedProperties failed: ' . $e->getMessage());
             return response()->json(['error' => 'Server Error: ' . $e->getMessage()], 500);
         }
     }
@@ -180,13 +182,17 @@ class PropertyController extends Controller
         try {
             $properties = Property::with('media')->orderBy('created_at', 'desc')->get();
     
-            // ✅ Convert relative paths to full URLs
+            // Convert relative paths to full URLs
             $properties->each(function ($property) {
                 foreach ($property->media as $media) {
                     if (!str_starts_with($media->url, 'http')) {
-                        $media->url = asset('storage/' . $media->url);
+                        $media->url = str_starts_with($media->url, '/storage/')
+    ? asset($media->url)
+    : asset("storage/{$media->url}");
+ // outputs full URL
                     }
                 }
+                
             });
     
             return response()->json($properties, 200);
@@ -195,19 +201,19 @@ class PropertyController extends Controller
         }
     }
     
-    // ✅ 6. Delete Property
+    // 6. Delete Property
     public function deleteProperty($id)
     {
         try {
             $property = Property::findOrFail($id);
     
-            // ✅ Delete associated media files from storage
+            // Delete associated media files from storage
             foreach ($property->media as $file) {
                 $filePath = str_replace('storage/', '', $file->url);
                 Storage::disk('public')->delete($filePath);
             }
     
-            // ✅ Delete from database
+            // Delete from database
             $property->delete();
     
             return response()->json(['message' => 'Property deleted successfully!'], 200);
@@ -217,7 +223,7 @@ class PropertyController extends Controller
     }
     
 /**
- * ✅ Store Media Files (Images, Videos, 360° Panorama)
+ * Store Media Files (Images, Videos, 360° Panorama)
  */
 private function storeMediaFiles($request, $propertyId)
 {
@@ -232,7 +238,7 @@ private function storeMediaFiles($request, $propertyId)
             foreach ($request->file($inputName) as $file) {
                 $path = $file->store("property_images/{$propertyId}", 'public');
 
-                // ✅ Save to `property_media` table
+                // Save to `property_media` table
                 PropertyMedia::create([
                     'property_id' => $propertyId,
                     'url' => $path,
@@ -245,7 +251,7 @@ private function storeMediaFiles($request, $propertyId)
 public function updateApprovalStatus(Request $request, $id)
 {
     try {
-        // ✅ Validate request input
+        // Validate request input
         $validator = Validator::make($request->all(), [
             'status' => 'required|in:pending,approved,rejected',
         ]);
@@ -258,15 +264,19 @@ public function updateApprovalStatus(Request $request, $id)
             ], 422);
         }
 
-        // ✅ Find the property
+        // Find the property
         $property = Property::findOrFail($id);
         $property->status = $request->status;
         $property->save();
 
-        // ✅ Ensure media URLs are correctly formatted
-        foreach ($property->media as &$media) {
-            $media->url = asset('storage/' . $media->url);
+        // Ensure media URLs are correctly formatted
+        foreach ($property->media as $media) {
+            $media->url = str_starts_with($media->url, '/storage/')
+    ? asset($media->url)
+    : asset("storage/{$media->url}");
+
         }
+        
 
         return response()->json([
             'message' => 'Property status updated successfully!',
@@ -277,7 +287,7 @@ public function updateApprovalStatus(Request $request, $id)
     }
 }
 
-    // ✅ Delete Media Files (Helper Function)
+    // Delete Media Files (Helper Function)
     private function deleteMediaFiles($images)
     {
         $mediaFiles = json_decode($images, true) ?? [];

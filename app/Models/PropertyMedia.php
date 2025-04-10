@@ -16,9 +16,11 @@ class PropertyMedia extends Model
         return $this->belongsTo(Property::class, 'property_id');
     }
 
-    // ✅ Accessor to automatically format the storage URL
+    // ✅ Accessor to automatically format the storage URL// PropertyMedia.php
     public function getUrlAttribute($value)
     {
-        return url("storage/" . ltrim($value, '/'));
+        return $value; // ✅ Return the stored path only: 'property_lightbox_media/1/filename.jpg'
     }
+    
+    
 }

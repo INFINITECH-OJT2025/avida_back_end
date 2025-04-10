@@ -3,7 +3,7 @@
 return [
     'paths' => ['api/*', 'admin/*', 'storage/*', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => ['http://localhost:3000'], // ✅ Allow your Next.js frontend
+    'allowed_origins' => ['*', 'http://localhost:3000', 'http://localhost:3001'], // ✅ Allow your Next.js frontend
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],

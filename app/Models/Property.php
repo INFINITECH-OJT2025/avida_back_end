@@ -33,13 +33,12 @@ class Property extends Model
             ->get()
             ->map(function ($item) {
                 return [
-                    'url' => url("storage/" . ltrim($item->url, '/')),
+                    'url' => $item->url, // ✅ Already formatted via accessor
                     'type' => '360'
                 ];
             });
     }
-
-    // ✅ Separate Lightbox2 (Images & Videos)
+    
     public function getLightbox2MediaAttribute()
     {
         return $this->media()
@@ -47,9 +46,10 @@ class Property extends Model
             ->get()
             ->map(function ($item) {
                 return [
-                    'url' => url("storage/" . ltrim($item->url, '/')),
+                    'url' => $item->url, // ✅ Already formatted via accessor
                     'type' => $item->type
                 ];
             });
     }
+    
 }
