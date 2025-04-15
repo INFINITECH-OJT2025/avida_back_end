@@ -68,8 +68,8 @@ Route::middleware(['jwt.auth', 'isAdmin'])->prefix('admin')->group(function () {
     Route::get('/properties', [PropertyController::class, 'getAllProperties']);
     Route::patch('/property/{id}', [PropertyController::class, 'updateApprovalStatus']);
     Route::delete('/property/{id}', [PropertyController::class, 'deleteProperty']);
-    Route::post('/adminAddproperties', [PropertyController::class, 'adminAddProperty']); 
-    Route::put('/adminUpdateproperties/{id}', [PropertyController::class, 'adminUpdateProperty']); 
+    Route::post('/property-add', [PropertyController::class, 'adminAddProperty']);
+    Route::put('/property-update/{id}', [PropertyController::class, 'adminUpdateProperty']); 
     
     // 💼 Services CRUD
     Route::get('/services', [ServiceController::class, 'getAll']); // 🔐 Admin: Get all services (0 & 1)
