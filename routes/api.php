@@ -70,6 +70,7 @@ Route::middleware(['jwt.auth', 'isAdmin'])->prefix('admin')->group(function () {
     Route::delete('/property/{id}', [PropertyController::class, 'deleteProperty']);
     Route::post('/properties', [PropertyController::class, 'adminAddProperty']); 
     Route::put('/properties/{id}', [PropertyController::class, 'adminUpdateProperty']); 
+    
     // 💼 Services CRUD
     Route::get('/services', [ServiceController::class, 'getAll']); // 🔐 Admin: Get all services (0 & 1)
     Route::post('/services', [ServiceController::class, 'store']); // 🔐 Admin: Add new service
